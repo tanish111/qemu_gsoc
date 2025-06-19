@@ -174,7 +174,46 @@ class Arguments:
             return "void"
         else:
             return ", ".join([ " ".join([t, n]) for t,n in self._args ])
+            
+    def str_rust(self):
+        """String suitable for declaring function arguments in Rust."""
+        c_to_rust_type_map = {
+	    "int": "i32",
+	    "short": "i16",
+	    "long": "i64",
+	    "long long": "i64",
+	    "unsigned int": "u32",
+	    "unsigned short": "u16",
+	    "unsigned long": "u64",
+	    "unsigned long long": "u64",
+	    "int8_t": "i8",
+	    "uint8_t": "u8",
+	    "int16_t": "i16",
+	    "uint16_t": "u16",
+	    "int32_t": "i32",
+	    "uint32_t": "u32",
+	    "int64_t": "i64",
+	    "uint64_t": "u64",
+	    "float": "f32",
+	    "double": "f64",
+	    "bool": "bool",
+	    "char": "u8",  
+	    "const char *": "*const c_char",
+	    "char *": "*mut c_char",
+	    "void *": "*const ()",
+        }
 
+        if not self._args:
+            return ""
+    
+        rust_args = []
+        for c_type, name in self._args:
+            rust_type = c_to_rust_type_map.get(c_type, c_type)  # fallback to original if unmapped
+            rust_args.append(f"_{name}: {rust_type}")
+    
+        return ", ".join(rust_args)
+
+            
     def __repr__(self):
         """Evaluable string representation for this object."""
         return "Arguments(\"%s\")" % str(self)
@@ -182,6 +221,11 @@ class Arguments:
     def names(self):
         """List of argument names."""
         return [ name for _, name in self._args ]
+        
+    def rust_names(self):
+        """List of Rust-style argument names with leading underscore."""
+        return [f"_{name}" for _, name in self._args]
+
 
     def types(self):
         """List of argument types."""
@@ -220,8 +264,8 @@ class Event(object):
                       r"\s*")
 
     _VALID_PROPS = set(["disable"])
-
-    def __init__(self, name, props, fmt, args, lineno, filename, orig=None,
+    
+    def __init__(self, name, props, fmt, args, lineno, filename, rust_args, orig=None,
                  event_trans=None, event_exec=None):
         """
         Parameters
@@ -253,7 +297,8 @@ class Event(object):
         self.lineno = int(lineno)
         self.filename = str(filename)
         self.event_trans = event_trans
-        self.event_exec = event_exec
+        self.event_exec = event_exec 
+        self.rust_args = rust_args
 
         if len(args) > 10:
             raise ValueError("Event '%s' has more than maximum permitted "
@@ -309,8 +354,9 @@ class Event(object):
         if len(fmt_trans) > 0:
             fmt = [fmt_trans, fmt]
         args = Arguments.build(groups["args"])
-
-        return Event(name, props, fmt, args, lineno, posix_relpath(filename))
+        rust_args = args.str_rust()
+        
+        return Event(name, props, fmt, args, lineno, filename,rust_args)
 
     def __repr__(self):
         """Evaluable string representation for this object."""
