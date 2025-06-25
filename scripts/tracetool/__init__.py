@@ -201,6 +201,7 @@ class Arguments:
 	    "const char *": "*const c_char",
 	    "char *": "*mut c_char",
 	    "void *": "*const ()",
+	    "const void *": "*const ()",
         }
 
         if not self._args:

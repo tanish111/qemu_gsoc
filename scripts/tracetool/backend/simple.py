@@ -34,6 +34,10 @@ def generate_h_begin(events, group):
             args=event.args)
     out('')
 
+def generate_rs(event, group):
+    out('        unsafe { _simple_%(api)s(%(args)s); }',
+        api=event.api(),
+        args=", ".join(f"_{name}" for name in event.args.names()))
 
 def generate_h(event, group):
     out('        _simple_%(api)s(%(args)s);',
