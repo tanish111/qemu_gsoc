@@ -19,11 +19,19 @@ foreach item : [ '.' ] + trace_events_subdirs + qapi_trace_events
                           command: [ tracetool, group, '--format=h', '@INPUT@', '@OUTPUT@' ],
                           depend_files: tracetool_depends)
   genh += trace_h
+  
   trace_c = custom_target(fmt.format('trace', 'c'),
                           output: fmt.format('trace', 'c'),
                           input: trace_events_file,
                           command: [ tracetool, group, '--format=c', '@INPUT@', '@OUTPUT@' ],
                           depend_files: tracetool_depends)
+  
+  trace_rs = custom_target(fmt.format('trace', 'rs'),
+                          output: fmt.format('trace', 'rs'),
+                          input: trace_events_file,
+                          command: [ tracetool, group, '--format=rs', '@INPUT@', '@OUTPUT@' ],
+                          depend_files: tracetool_depends)
+  
   if 'ust' in get_option('trace_backends')
     trace_ust_h = custom_target(fmt.format('trace-ust', 'h'),
                                 output: fmt.format('trace-ust', 'h'),

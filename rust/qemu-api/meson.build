@@ -68,7 +68,6 @@ _qemu_api_rs = static_library(
       'src/prelude.rs',
       'src/qdev.rs',
       'src/qom.rs',
-      'src/trace.rs',
       'src/sysbus.rs',
       'src/timer.rs',
       'src/uninit.rs',

@@ -202,6 +202,8 @@ class Arguments:
 	    "char *": "*mut c_char",
 	    "void *": "*const ()",
 	    "const void *": "*const ()",
+        "size_t":"usize",
+        "unsigned":"u32"
         }
 
         if not self._args:
