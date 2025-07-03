@@ -122,6 +122,7 @@ pub struct PL011State {
     ///  * sysbus IRQ 2: `UARTTXINTR` (transmit FIFO interrupt line)
     ///  * sysbus IRQ 3: `UARTRTINTR` (receive timeout interrupt line)
     ///  * sysbus IRQ 4: `UARTMSINTR` (momem status interrupt line)
+    ///  * sysbus IRQ 4: `UARTMSINTR` (momem status interrupt line)
     ///  * sysbus IRQ 5: `UARTEINTR` (error interrupt line)
     /// ```
     #[doc(alias = "irq")]
