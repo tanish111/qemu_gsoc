@@ -87,6 +87,5 @@ def generate(events, backend, group):
             api_nocheck=e.api(e.QEMU_TRACE_NOCHECK),
             names=", ".join(e.args.rust_names()),
             cond=cond)
-    out('fn main() {}')
     backend.generate_end(events, group)
 

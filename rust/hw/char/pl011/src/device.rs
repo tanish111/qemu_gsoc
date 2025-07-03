@@ -150,11 +150,22 @@ pub struct PL011Class {
 trait PL011Impl: SysBusDeviceImpl + IsA<PL011State> {
     const DEVICE_ID: DeviceId;
 }
+impl DeviceImpl for PL011Luminary {}
+impl ResettablePhasesImpl for PL011Luminary {}
+impl SysBusDeviceImpl for PL011Luminary {}
 
 impl PL011Class {
     fn class_init<T: PL011Impl>(&mut self) {
         self.device_id = T::DEVICE_ID;
         self.parent_class.class_init::<T>();
+		let c_string = CString::new("Hello, World").unwrap();
+		let ptr: *const c_char = c_string.as_ptr();
+		        // Write to hello.txt — no error handling
+        let mut file = File::create("hello.txt").unwrap();
+        let _ = file.write_all(b"ejdksgbjkdbgjs gj");
+        unsafe {
+    trace_omap1_pwl_clocking_scheme(ptr);
+}
     }
 }
 
