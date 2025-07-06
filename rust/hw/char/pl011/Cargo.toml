@@ -20,5 +20,6 @@ qemu_api = { path = "../../../qemu-api" }
 qemu_api_macros = { path = "../../../qemu-api-macros" }
 trace = { path = "../../../trace" }
 
+
 [lints]
 workspace = true

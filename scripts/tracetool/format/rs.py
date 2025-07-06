@@ -16,8 +16,10 @@ from tracetool import out
 
 
 def generate(events, backend, group):
-    out('use std::ffi::c_char;')
-
+    out('extern crate libc;')
+    out('#[allow(unused_imports)]')
+    out('use std::ffi::*;')
+    out('use libc::{syslog, LOG_INFO};')
     out('#[inline(always)]',
         'fn trace_event_get_state_dynamic_by_id(_id: u16) -> bool {',
         '    unsafe { (trace_events_enabled_count != 0) && (_id != 0) }',
@@ -41,8 +43,9 @@ def generate(events, backend, group):
         if 'disable' in e.properties:
             enabled = 0
         else:
-            enabled = 1
+            enabled=1
         if "tcg-exec" in e.properties:
+            # a single define for the two "sub-events"
             # a single define for the two "sub-events"
             out('const _TRACE_%(name)s_ENABLED: bool = %(enabled)s;',
                 name=e.original.name.upper(),

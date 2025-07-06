@@ -26,6 +26,7 @@ def generate(events, backend, group):
         '#include "%s"' % header,
         '')
 
+
     for e in events:
         out('extern TraceEvent %(event)s;',
             event = e.api(e.QEMU_EVENT))
