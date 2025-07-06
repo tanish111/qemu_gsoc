@@ -159,14 +159,17 @@ impl PL011Class {
     fn class_init<T: PL011Impl>(&mut self) {
         self.device_id = T::DEVICE_ID;
         self.parent_class.class_init::<T>();
-		let c_string = CString::new("Hello, World").unwrap();
-		let ptr: *const c_char = c_string.as_ptr();
-		        // Write to hello.txt — no error handling
-        let mut file = File::create("hello.txt").unwrap();
-        let _ = file.write_all(b"ejdksgbjkdbgjs gj");
-        unsafe {
-    trace_omap1_pwl_clocking_scheme(ptr);
-}
+//		let c_string = CString::new("Hello, World").unwrap();
+//		let ptr: *const c_char = c_string.as_ptr();
+//		        // Write to hello.txt — no error handling
+//        let mut file = File::create("hello.txt").unwrap();
+//        let _ = file.write_all(b"ejdksgbjkdbgjs gj");
+//        unsafe {
+//    trace_omap1_pwl_clocking_scheme(ptr);
+//}
+
+        let msg = CString::new("Rust message via syslog() after C++ openlog").unwrap();
+        unsafe { syslog(LOG_INFO, msg.as_ptr() as *const c_char); }
     }
 }
 

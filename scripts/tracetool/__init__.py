@@ -31,6 +31,26 @@ def error(*lines):
     error_write(*lines)
     sys.exit(1)
 
+def pri_macro_to_fmt(pri_macro: str) -> str | None:
+    if not pri_macro.startswith("PRI"):
+        return None
+
+    fmt_type = pri_macro[3].lower()  # 'd', 'u', or 'x'
+    fmt_size = pri_macro[4:]  # '8', '16', '32', '64', 'PTR', 'MAX'
+
+    if fmt_type == 'i':
+        fmt_type = 'd'
+
+    size_map = {
+        '8':  {'d': '%hhd', 'u': '%hhu', 'x': '%hhx'},
+        '16': {'d': '%hd',  'u': '%hu',  'x': '%hx'},
+        '32': {'d': '%d',   'u': '%u',   'x': '%x'},
+        '64': {'d': '%lld', 'u': '%llu', 'x': '%llx'},
+        'PTR': {'d': '%td', 'u': '%tu', 'x': '%tx'},
+        'MAX': {'d': '%jd', 'u': '%ju', 'x': '%jx'},
+    }
+
+    return size_map.get(fmt_size, {}).get(fmt_type)
 
 out_lineno = 1
 out_filename = '<none>'
@@ -175,33 +195,33 @@ class Arguments:
         else:
             return ", ".join([ " ".join([t, n]) for t,n in self._args ])
             
-    def str_rust(self):
+    def str_rust(self,ffi_mode: bool = True):
         """String suitable for declaring function arguments in Rust."""
         c_to_rust_type_map = {
-	    "int": "i32",
-	    "short": "i16",
-	    "long": "i64",
-	    "long long": "i64",
-	    "unsigned int": "u32",
-	    "unsigned short": "u16",
-	    "unsigned long": "u64",
-	    "unsigned long long": "u64",
-	    "int8_t": "i8",
-	    "uint8_t": "u8",
-	    "int16_t": "i16",
-	    "uint16_t": "u16",
-	    "int32_t": "i32",
-	    "uint32_t": "u32",
-	    "int64_t": "i64",
-	    "uint64_t": "u64",
-	    "float": "f32",
-	    "double": "f64",
-	    "bool": "bool",
-	    "char": "u8",  
-	    "const char *": "*const c_char",
-	    "char *": "*mut c_char",
-	    "void *": "*const ()",
-	    "const void *": "*const ()",
+        "int": "i32",
+        "short": "i16",
+        "long": "i64",
+        "long long": "i64",
+        "unsigned int": "u32",
+        "unsigned short": "u16",
+        "unsigned long": "u64",
+        "unsigned long long": "u64",
+        "int8_t": "i8",
+        "uint8_t": "u8",
+        "int16_t": "i16",
+        "uint16_t": "u16",
+        "int32_t": "i32",
+        "uint32_t": "u32",
+        "int64_t": "i64",
+        "uint64_t": "u64",
+        "float": "f32",
+        "double": "f64",
+        "bool": "bool",
+        "char": "u8",
+        "const char *": "*const c_char",
+        "char *": "*mut c_char",
+        "void *": "*const ()",
+        "const void *": "*const ()",
         "size_t":"usize",
         "unsigned":"u32"
         }
@@ -211,7 +231,10 @@ class Arguments:
     
         rust_args = []
         for c_type, name in self._args:
-            rust_type = c_to_rust_type_map.get(c_type, c_type)  # fallback to original if unmapped
+            if ffi_mode:
+                rust_type = c_to_rust_type_map.get(c_type, c_type)
+            else:
+                rust_type = c_to_rust_type_map.get(c_type, c_type)  # fallback to original if unmapped
             rust_args.append(f"_{name}: {rust_type}")
     
         return ", ".join(rust_args)
@@ -268,6 +291,12 @@ class Event(object):
 
     _VALID_PROPS = set(["disable"])
     
+    _RUST_FMT = re.compile(r'''(?:
+        " ( (?:[^"\\]|\\.)*? ) "
+        | ( PRI [dxui] (?:8|16|32|64|PTR|MAX) )
+        | \s+
+        )''', re.X | re.IGNORECASE)
+
     def __init__(self, name, props, fmt, args, lineno, filename, rust_args, orig=None,
                  event_trans=None, event_exec=None):
         """
@@ -379,6 +408,24 @@ class Event(object):
         """List conversion specifiers in the argument print format string."""
         assert not isinstance(self.fmt, list)
         return self._FMT.findall(self.fmt)
+
+    def rust_format_string(self, c_fmt):
+        result = ""
+        pos = 0
+        while pos < len(c_fmt):
+            m = self._RUST_FMT.match(c_fmt, pos)
+            if not m:
+                print("No match at position", pos, ":", repr(c_fmt[pos:]))
+                raise Exception("syntax error in trace file")
+            if m[1]:
+                substr = m[1]
+            elif m[2]:
+                substr = "L"
+            else:
+                substr = ""
+            result += substr
+            pos = m.end()
+        return result
 
     QEMU_TRACE               = "trace_%(name)s"
     QEMU_TRACE_NOCHECK       = "_nocheck_" + QEMU_TRACE

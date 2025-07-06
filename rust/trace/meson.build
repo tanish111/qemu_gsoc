@@ -1,20 +1,13 @@
 rust = import('rust')
 
 _trace_rs = static_library(
-  'trace',
+  'trace',             # Library name,
   'src/lib.rs',
+  trace_rs_targets,         # List of generated `.rs` custom targets
   override_options: ['rust_std=2021', 'build.rust_std=2021'],
   rust_abi: 'rust',
-  dependencies: [libc_rs,qemuutil_rs],
+  dependencies : [libc_rs,qemuutil_rs],        # Add any necessary Rust dependencies if needed
 )
 
 trace_rs = declare_dependency(link_with: _trace_rs)
-
-trace_rs_lib = static_library(
-  'qemu-trace',             # Library name
-  trace_rs_targets,         # List of generated `.rs` custom targets
-  rust_crate_type : 'staticlib',
-  install : false,
-  dependencies : [],        # Add any necessary Rust dependencies if needed
-)
 
