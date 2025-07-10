@@ -102,3 +102,16 @@ def generate_c(event, group):
     out('    trace_record_finish(&rec);',
         '}',
         '')
+
+def generate_rs_begin(events,group):
+    out('extern "C" {')
+    for e in events:
+        out('    fn _simple_%(api)s(%(args)s);',
+            api=e.api(),
+            args=e.rust_args)
+    out('}')
+
+def generate_rs(event, group):
+    out('        unsafe { _simple_%(api)s(%(args)s); }',
+        api=event.api(),
+        args=", ".join(f"_{name}" for name in event.args.names()))

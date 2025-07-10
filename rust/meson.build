@@ -25,7 +25,7 @@ genrs = []
 subdir('qemu-api-macros')
 subdir('bits')
 subdir('qemu-api')
-
+subdir('trace')
 subdir('hw')
 
 cargo = find_program('cargo', required: false)
