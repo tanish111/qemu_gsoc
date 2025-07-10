@@ -10,7 +10,7 @@ _trace_rs = static_library(
 
 trace_rs = declare_dependency(link_with: _trace_rs)
 
-trace_rs_target = static_library(
+trace_rs_lib = static_library(
   'qemu-trace',             # Library name
   trace_rs_targets,         # List of generated `.rs` custom targets
   rust_crate_type : 'staticlib',
