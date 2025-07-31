@@ -31,6 +31,23 @@ def error(*lines):
     error_write(*lines)
     sys.exit(1)
 
+def pri_macro_to_fmt(pri_macro: str) -> str | None:
+    if not pri_macro.startswith("PRI"):
+        return None
+
+    fmt_type = pri_macro[3]  # 'd', 'u', or 'x'
+    fmt_size = pri_macro[4:]  # '8', '16', '32', '64', 'PTR', 'MAX'
+
+    size_map = {
+        '8':  {'d': '%hhd', 'u': '%hhu', 'x': '%hhx'},
+        '16': {'d': '%hd',  'u': '%hu',  'x': '%hx'},
+        '32': {'d': '%d',   'u': '%u',   'x': '%x'},
+        '64': {'d': '%lld', 'u': '%llu', 'x': '%llx'},
+        'PTR': {'d': '%td', 'u': '%tu', 'x': '%tx'},
+        'MAX': {'d': '%jd', 'u': '%ju', 'x': '%jx'},
+    }
+
+    return size_map.get(fmt_size, {}).get(fmt_type)
 
 out_lineno = 1
 out_filename = '<none>'
@@ -220,8 +237,14 @@ class Event(object):
                       r"\s*")
 
     _VALID_PROPS = set(["disable"])
+    
+    _RUST_FMT = re.compile(r'''(?:
+                      " ( (?:[^"\\]|\\\\|\\") *? ) "
+                      | ( PRI [dxu] (?:8|16|32|64|PTR|MAX) )
+                      | \s+
+                      )''', re.X)
 
-    def __init__(self, name, props, fmt, args, lineno, filename, orig=None,
+    def __init__(self, name, props, fmt, args, lineno, filename, rust_args, orig=None,
                  event_trans=None, event_exec=None):
         """
         Parameters
@@ -330,6 +353,24 @@ class Event(object):
         """List conversion specifiers in the argument print format string."""
         assert not isinstance(self.fmt, list)
         return self._FMT.findall(self.fmt)
+
+    def rust_format_string(self, c_fmt):
+        result = ""
+        pos = 0
+        while pos < len(c_fmt):
+            m = _RUST_FMT.match(c_fmt,pos)
+            if not m :
+                raise Exception("syntax error in trace file")
+            if m[1]:
+                substr = m[1]
+            elif m[2]:
+                substr = pri_macro_to_fmt(m[2])
+            else:
+                substr=""
+            result+=substr
+            pos=m.end()
+        result+=""
+        return result
 
     QEMU_TRACE               = "trace_%(name)s"
     QEMU_TRACE_NOCHECK       = "_nocheck__" + QEMU_TRACE

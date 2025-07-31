@@ -52,7 +52,7 @@ def generate_rs(event, group):
         fmt=event.rust_format_string(event.fmt.rstrip("\n")))
     out('if((qemu_loglevel & LOG_TRACE)!=0){')
     out('    unsafe {qemu_log("%(name)s " %(fmt)s "\\n"%(args)s);}',
-            args=convert_rust_args_to_ffi(event.rust_args,
+            args=event.rust_args,
             fmt=event.fmt.rstrip("\n"),
             name=event.name)
     out('}')
