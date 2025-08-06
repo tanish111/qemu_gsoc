@@ -8,6 +8,8 @@ use std::{
     ptr::NonNull,
 };
 
+trace::include_trace!("trace-hw_arm");
+
 use qemu_api::{
     bindings::{qdev_prop_bool, qdev_prop_chr},
     chardev::{CharBackend, Chardev, Event},
