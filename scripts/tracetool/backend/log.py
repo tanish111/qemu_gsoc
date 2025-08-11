@@ -46,3 +46,13 @@ def generate_h(event, group):
 def generate_h_backend_dstate(event, group):
     out('    trace_event_get_state_dynamic_by_id(%(event_id)s) || \\',
         event_id="TRACE_" + event.name.upper())
+
+def generate_rs(event, group):
+    out('let format_string = CString::new("%(fmt)s").expect("CString::new failed");',
+        fmt=event.rust_format_string(event.fmt.rstrip("\n")))
+    out('if((qemu_loglevel & LOG_TRACE)!=0){')
+    out('    unsafe {qemu_log("%(name)s " %(fmt)s "\\n"%(args)s);}',
+            args=convert_rust_args_to_ffi(event.rust_args,
+            fmt=event.fmt.rstrip("\n"),
+            name=event.name)
+    out('}')
