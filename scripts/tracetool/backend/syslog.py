@@ -12,11 +12,6 @@ __maintainer__ = "Stefan Hajnoczi"
 __email__      = "stefanha@redhat.com"
 
 
-<<<<<<< HEAD
-=======
-import os.path
-import re
->>>>>>> d28aa5e4b5 (Syslog Support)
 from tracetool import out
 
 
